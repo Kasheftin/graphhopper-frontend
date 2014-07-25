@@ -1,0 +1,16 @@
+{
+    "name": "graphhopper-frontend",
+    "version": "0.0.1",
+    "dependencies": {
+       "requirejs": "latest",
+        "requirejs-text": "latest",
+        "requirejs-domready": "latest",
+		"bootstrap": "latest",
+        "jquery": "latest",
+        "knockout": "latest",
+        "EventEmitter": "https://github.com/Wolfy87/EventEmitter.git",
+        "leaflet": "latest",
+		"jquery-ui": "latest",
+		"knockout-sortable": "latest"
+    }
+}

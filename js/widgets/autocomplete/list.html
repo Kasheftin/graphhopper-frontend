@@ -1,0 +1,6 @@
+<!-- ko foreach: list -->
+	<a class="gh-autocomplete-item" href="#" data-bind="click:$parent.selectHitAndClose.bind($parent,$index()),css:{'gh-autocomplete-item-selected':$index()==$parent.item()}">
+		<span class="gh-autocomplete-item-name" data-bind="text:name"></span>
+		<span class="gh-autocomplete-item-country" data-bind="text:country"></span>
+	</a>
+<!-- /ko -->

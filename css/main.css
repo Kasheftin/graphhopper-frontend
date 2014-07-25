@@ -1,0 +1,75 @@
+
+html,body {
+	height: 100%;
+}
+
+.gh-map,.gh-map-container {
+	width: 100%;
+	height: 100%;
+}
+
+.gh-window {
+	background-color: #ffffff;
+	border-radius: 2px;
+	box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+	cursor: default;
+	overflow-y: auto;
+	overflow-x: hidden;
+	position: absolute;
+	z-index: 1;
+}
+
+.gh-directions-window {
+	left: 30px;	
+	top: 30px;
+	width: 300px;
+}
+
+.gh-window-inner {
+	margin: 0 10px;
+}
+
+.gh-directions {
+	border-top: 1px solid #e5e5e5;
+	padding: 10px;
+	padding-bottom: 0;
+}
+
+.gh-controls {
+	padding: 10px;
+	padding-top: 0;
+}
+
+.gh-autocomplete-list {
+	position: absolute;
+	z-index: 1000;
+	background-color: #ffffff;
+}
+.gh-autocomplete-list a {
+	display: block;
+	border: 1px solid #cccccc;
+	margin-top: -1px;
+	padding: 5px;
+	position: relative;
+}
+.gh-autocomplete-list a:hover {
+	border-color: #66afe9;
+	box-shadow: 0 1px 1px rgba(0,0,0,0.075) inset, 0 0 8px rgba(102,175,233,0.6);
+	outline: 0 none;
+	text-decoration: none;
+	z-index: 2;
+}
+.gh-autocomplete-item-selected {
+	border-color: #66afe9;
+	box-shadow: 0 1px 1px rgba(0,0,0,0.075) inset, 0 0 8px rgba(102,175,233,0.6);
+	background-color: #96CFFF;	
+}
+.gh-autocomplete-item-name {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.gh-autocomplete-item-country {
+	font-size: 10px;
+}

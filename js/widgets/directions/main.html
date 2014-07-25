@@ -1,0 +1,28 @@
+
+<div class="gh-window gh-directions-window">
+	<div class="gh-window-inner">
+		<a href="http://graphhopper.com/">
+			<img src="http://graphhopper.com/maps/img/header.png">
+		</a>
+	</div>
+	<div class="gh-directions" data-bind="sortable:{data:points,afterMove:afterMove.bind($data),afterRender:afterRender.bind($data)}">
+		<div class="input-group input-group-sm form-group">
+			<span class="input-group-addon" data-bind="text:$index()+1"></span>
+			<!-- ko widget: {name:"autocomplete",callback:registerAutocomplete.bind($data),clonedOptions:$parent.clonedOptions} --><!-- /ko -->
+			<a class="btn btn-default glyphicon glyphicon-remove input-group-addon" href="#" data-bind="visible:$parent.points().length>2,click:$parent.removePoint.bind($parent,$index())"></a>
+		</div>
+	</div>
+	<div class="clearfix gh-controls">
+		<div class="pull-left">
+			<div class="btn-group btn-group-xs">
+				<button class="btn" data-bind="css:{'btn-primary':vehicle()=='car','btn-default':vehicle()!='car'},click:vehicle.bind($data,'car')">car</button>
+				<button class="btn" data-bind="css:{'btn-primary':vehicle()=='bike','btn-default':vehicle()!='bike'},click:vehicle.bind($data,'bike')">bike</button>
+				<button class="btn" data-bind="css:{'btn-primary':vehicle()=='foot','btn-default':vehicle()!='foot'},click:vehicle.bind($data,'foot')">foot</button>
+			</div>
+		</div>
+		<div class="pull-right">
+			<a class="btn btn-default btn-xs" href="#" data-bind="click:addPoint">Add destination</a>
+			<a class="btn btn-primary btn-xs" href="#" data-bind="click:apply">Apply</a>
+		</div>
+	</div> 
+</div>
