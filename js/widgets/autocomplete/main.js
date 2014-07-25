@@ -102,7 +102,7 @@ define(["jquery","knockout","config"],function($,ko,config) {
 	Autocomplete.prototype.getDataAsync = function(callback) {
 		var self = this;
 		if (this.itemData) return callback(this.itemData);
-		if (this.str().length<config.autocomplete.minlength) return callback(null);
+		if (!this.str() || this.str().length<config.autocomplete.minlength) return callback(null);
 		$.ajax({
 			url: "http://graphhopper.com/api/1/geocode",
 			data: {
