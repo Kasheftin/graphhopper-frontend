@@ -16,9 +16,12 @@ require.config({
     }]
 });
 
-require(["domReady!","knockout","EventEmitter","stringTemplateEngine","widgetBinding","knockout.sortable"],function(doc,ko,EventEmitter) {
+require(["domReady!","knockout","EventEmitter","ghc","config","stringTemplateEngine","widgetBinding","knockout.sortable"],function(doc,ko,EventEmitter,GHC,config) {
     var App = function() {
         this.eventEmitter = new EventEmitter();
     }
+
+    GHC.apiKey = config.graphhopperKey;
+
     ko.applyBindings(new App);
 });

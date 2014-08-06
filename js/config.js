@@ -1,12 +1,18 @@
 define({
-	graphhopperKey: "Cmmtvx01R56rdHcQQo7VjI6rgPgxuFLvqI8cR31u",
+	graphhopperKey: "r3ywHxaPxHfQxiIiRfydBbdA8oAqJVyn1efz6dAu",
 	startPosition: {
 		lat: 48.740,
 		lng: 19.140,
 		zoom: 13
 	},
-	autocomplete: {
-		minlength: 2,
-		limit: 8
+	overMarkerIcon: {
+		iconUrl: "/css/overMarker.png",
+		iconSize: [16,16],
+		iconAnchor: [7,7]
+	},
+	middleMarkerIcon: {
+		iconUrl: "/css/overMarker.png",
+		iconSize: [16,16],
+		iconAnchor: [7,7]
 	}
 });

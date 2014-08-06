@@ -5,11 +5,20 @@
 			<img src="http://graphhopper.com/maps/img/header.png">
 		</a>
 	</div>
-	<div class="gh-directions" data-bind="sortable:{data:points,afterMove:afterMove.bind($data),afterRender:afterRender.bind($data)}">
+	<div class="gh-directions" data-bind="sortable:{data:points,afterRender:afterRenderPoint,beforeRemove:beforeRemovePoint}">
 		<div class="input-group input-group-sm form-group">
 			<span class="input-group-addon" data-bind="text:$index()+1"></span>
-			<!-- ko widget: {name:"autocomplete",callback:registerAutocomplete.bind($data),clonedOptions:$parent.clonedOptions} --><!-- /ko -->
-			<a class="btn btn-default glyphicon glyphicon-remove input-group-addon" href="#" data-bind="visible:$parent.points().length>2,click:$parent.removePoint.bind($parent,$index())"></a>
+			<input class="form-control" type="text" data-bind="value:value,event:{focus:createAutocomplete}" placeholder="--Empty destination--">
+			<a class="btn btn-default glyphicon glyphicon-remove input-group-addon" href="#" data-bind="visible:$parent.points().length>2,click:$parent.removePointAndApply.bind($parent,$index())"></a>
+		</div>
+	</div>
+	<div class="clearfix text-small gh-summary" data-bind="style:{opacity:summaryIsReady()?'1':'0'}">
+		<div class="pull-left">
+			<span data-bind="text:totalDistanceFormatted"></span>
+			<span data-bind="text:totalTimeFormatted"></span>
+		</div>
+		<div class="pull-right">
+			<button class="btn btn-xs btn-default" data-bind="click:switchInstructionsVisibility,text:instructionsAreVisible()?'Hide instructions':'Show instructions'"></button>
 		</div>
 	</div>
 	<div class="clearfix gh-controls">
@@ -24,5 +33,23 @@
 			<a class="btn btn-default btn-xs" href="#" data-bind="click:addPoint">Add destination</a>
 			<a class="btn btn-primary btn-xs" href="#" data-bind="click:apply">Apply</a>
 		</div>
-	</div> 
+	</div>
+</div>
+
+<div class="gh-window gh-instructions-window" data-bind="visible:summaryIsReady()&&instructionsAreVisible()">
+	<div class="gh-window-header">
+		<button class="close" href="#" data-bind="click:switchInstructionsVisibility">&times;</button>
+		<h4>Instructions</h4>
+	</div>
+	<div class="gh-instructions-list" data-bind="foreach:instructions">
+		<div data-bind="foreach:$data">
+			<div class="gh-instruction">
+				<div class="row">
+					<div class="col-sm-8 gh-instruction-text" data-bind="text:text"></div>
+					<div class="col-sm-2" data-bind="text:$parents[1].formatTime(time)"></div>
+					<div class="col-sm-2" data-bind="text:$parents[1].formatDistance(distance)"></div>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>

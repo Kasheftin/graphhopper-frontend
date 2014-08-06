@@ -1,0 +1,37 @@
+
+.ghc-autocomplete-list {
+	position: absolute;
+	z-index: 1000;
+	background-color: #ffffff;
+	font-size: 12px;
+	line-height: 15px;
+}
+.ghc-autocomplete-list a {
+	display: block;
+	border: 1px solid #cccccc;
+	margin-top: -1px;
+	padding: 5px;
+	position: relative;
+}
+.ghc-autocomplete-list a:hover {
+	border-color: #66afe9;
+	box-shadow: 0 1px 1px rgba(0,0,0,0.075) inset, 0 0 8px rgba(102,175,233,0.6);
+	outline: 0 none;
+	text-decoration: none;
+	z-index: 2;
+}
+.ghc-autocomplete-item-selected {
+	border-color: #66afe9;
+	box-shadow: 0 1px 1px rgba(0,0,0,0.075) inset, 0 0 8px rgba(102,175,233,0.6);
+	background-color: #96CFFF;	
+}
+.ghc-autocomplete-item-name {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.ghc-autocomplete-item-country {
+	font-size: 10px;
+	line-height: 12px;
+}
