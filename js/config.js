@@ -6,12 +6,12 @@ define({
 		zoom: 13
 	},
 	overMarkerIcon: {
-		iconUrl: "/graphhopper-frontend/css/overMarker.png",
+		iconUrl: "../css/overMarker.png",
 		iconSize: [16,16],
 		iconAnchor: [7,7]
 	},
 	middleMarkerIcon: {
-		iconUrl: "/graphhopper-frontend/css/overMarker.png",
+		iconUrl: "../css/overMarker.png",
 		iconSize: [16,16],
 		iconAnchor: [7,7]
 	}

@@ -32,13 +32,13 @@ define(["jquery","knockout","config","ghc"],function($,ko,config,GHC) {
 			if (!ar || !ar.lat || !ar.lng || typeof ar.index == "undefined") return;
 			var point = self.points()[ar.index];
 			point && point.setCoords(ar);
-			self.apply();
+			self.apply("movePoint",ar.index);
 		});
 		this.eventEmitter.on("directions.insertPoint",function(ar) {
 			if (!ar || !ar.lat || !ar.lng || typeof ar.index == "undefined") return;
 			self.addPoint({afterInitCallback: function(point) {
 				point.setCoords(ar);
-				self.apply();
+				self.apply("insertPoint",ar.index);
 			}},ar.index);
 		});
 		this.eventEmitter.on("directions.removePoint",function(index) {
@@ -96,7 +96,34 @@ define(["jquery","knockout","config","ghc"],function($,ko,config,GHC) {
 		this.points.splice(i,1);
 	}
 
-	Directions.prototype.apply = function() {
+	Directions.prototype.removePointAndApply = function(index) {
+		this.removePoint(index);
+		this.apply("removePoint",index);
+	}
+
+	/*
+		TODO: Optimize redraw
+		Here we have to get everything and rebuild routes and points.
+		The task consists on such async steps:
+			- 	Getting coordinates for each point (destination).
+			- 	Checking apply mode.
+				We do not keep track of previously built routes, instead of this we define the reason of rebuilding.
+				If it's, for example, adding a middle point - redraw only affected part of a route.
+				The possible reasons (mode param): 
+					- apply (the button apply pressed): rebuild everything,
+					- removePoint: get route for i-1,i destroy i-1, i routes and 
+	*/
+
+	Directions.prototype.apply = function(mode,index) {
+		var self = this;
+		this.getPointsData(mode,function(mode,points) {
+			self.getRoutesData(mode,points,function(mode,points,routes) {
+				self.redraw(mode,points,routes);
+			});
+		});
+	}
+
+	Directions.prototype.getPointsData = function(mode,callback) {
 		var self = this;
 		var l = this.points().length;
 		var loadedI = 0;
@@ -114,23 +141,42 @@ define(["jquery","knockout","config","ghc"],function($,ko,config,GHC) {
 							l--;
 						}
 					}
-					self.drawRoute(points);
+					callback(mode,points);
 				}
 			});
 		});
 	}
 
-	Directions.prototype.removePointAndApply = function(index) {
-		this.removePoint(index);
-		this.apply();
+	Directions.prototype.getRoutesData = function(mode,points,callback) {
+		var self = this;
+		var l = points.length;
+		var loadedI = 0;
+		var routes = [];
+		if (l==0) callback(mode,points,routes);
+		var directionsService = new GHC.DirectionsService();
+		for (var i = 0; i < l-1; i++) {
+			(function(i) {
+				directionsService.route({
+					points: [points[i],points[i+1]],
+					travelMode: self.vehicle()
+				},function(result) {
+					routes[i] = result;
+					loadedI++;
+					if (loadedI==l-1) {
+						callback(mode,points,routes);
+					}
+				});
+			})(i);
+		}
 	}
 
-	Directions.prototype.drawRoute = function(points) {
+	Directions.prototype.redraw = function(mode,points,routes) {
 		var self = this;
 		this.eventEmitter.emit("map.clearAll");
-		if (points.length<2) return;
-		points && this.eventEmitter.emit("map.drawMarkers",points);
-		points && this.eventEmitter.emit("map.setBBox",points);
+		if (!points || points.length<2) return;
+
+		if (mode=="apply") this.eventEmitter.emit("map.setBBox",points);
+		this.eventEmitter.emit("map.drawMarkers",points);
 
 		this.summaryIsReady(false);
 		this.instructionsAreVisible(false);
@@ -138,22 +184,14 @@ define(["jquery","knockout","config","ghc"],function($,ko,config,GHC) {
 		this.totalDistance(0);
 		this.instructions([]);
 
-		var directionsService = new GHC.DirectionsService();
-		for (var i = 0; i < points.length-1; i++) {
-			(function(i) {
-				directionsService.route({
-					points: [points[i],points[i+1]],
-					travelMode: self.vehicle()
-				},function(result) {
-					if (!result || !result.points) return;
-					self.eventEmitter.emit("map.drawPath",result.points,i);
-					self.summaryIsReady(true);
-					self.totalTime(self.totalTime()+result.time);
-					self.totalDistance(self.totalDistance()+result.distance);
-					self.instructions.push(result.instructions);
-				});
-			})(i);
-		}
+		routes.forEach(function(result,i) {
+			if (!result || !result.points || result.points.length==0) return;
+			self.eventEmitter.emit("map.drawPath",result.points,i);
+			self.summaryIsReady(true);
+			self.totalTime(self.totalTime()+result.time);
+			self.totalDistance(self.totalDistance()+result.distance);
+			self.instructions.push(result.instructions);			
+		});
 	}
 
 	return Directions;
