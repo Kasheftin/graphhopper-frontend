@@ -116,14 +116,16 @@ define(["jquery","knockout","config","ghc"],function($,ko,config,GHC) {
 
 	Directions.prototype.apply = function(mode,index) {
 		var self = this;
-		this.getPointsData(mode,function(mode,points) {
-			self.getRoutesData(mode,points,function(mode,points,routes) {
-				self.redraw(mode,points,routes);
+		// We create result object and append it step by step by points data, then by routes, and then draw it
+		var result = {mode:mode,index:index};
+		this.getPointsData(result,function(result) {
+			self.getRoutesData(result,function(result) {
+				self.redraw(result);
 			});
 		});
 	}
 
-	Directions.prototype.getPointsData = function(mode,callback) {
+	Directions.prototype.getPointsData = function(result,callback) {
 		var self = this;
 		var l = this.points().length;
 		var loadedI = 0;
@@ -141,42 +143,43 @@ define(["jquery","knockout","config","ghc"],function($,ko,config,GHC) {
 							l--;
 						}
 					}
-					callback(mode,points);
+					result.points = points;
+					callback(result);
 				}
 			});
 		});
 	}
 
-	Directions.prototype.getRoutesData = function(mode,points,callback) {
+	Directions.prototype.getRoutesData = function(result,callback) {
 		var self = this;
-		var l = points.length;
+		var l = result.points.length;
 		var loadedI = 0;
-		var routes = [];
-		if (l==0) callback(mode,points,routes);
+		result.routes = [];
+		if (l==0) callback(result);
 		var directionsService = new GHC.DirectionsService();
 		for (var i = 0; i < l-1; i++) {
 			(function(i) {
 				directionsService.route({
-					points: [points[i],points[i+1]],
+					points: [result.points[i],result.points[i+1]],
 					travelMode: self.vehicle()
-				},function(result) {
-					routes[i] = result;
+				},function(route) {
+					result.routes[i] = route;
 					loadedI++;
 					if (loadedI==l-1) {
-						callback(mode,points,routes);
+						callback(result);
 					}
 				});
 			})(i);
 		}
 	}
 
-	Directions.prototype.redraw = function(mode,points,routes) {
+	Directions.prototype.redraw = function(result) {
 		var self = this;
 		this.eventEmitter.emit("map.clearAll");
-		if (!points || points.length<2) return;
+		if (!result.points || result.points.length<2) return;
 
-		if (mode=="apply") this.eventEmitter.emit("map.setBBox",points);
-		this.eventEmitter.emit("map.drawMarkers",points);
+		if (result.mode=="apply") this.eventEmitter.emit("map.setBBox",result.points);
+		this.eventEmitter.emit("map.drawMarkers",result.points);
 
 		this.summaryIsReady(false);
 		this.instructionsAreVisible(false);
@@ -184,13 +187,13 @@ define(["jquery","knockout","config","ghc"],function($,ko,config,GHC) {
 		this.totalDistance(0);
 		this.instructions([]);
 
-		routes.forEach(function(result,i) {
-			if (!result || !result.points || result.points.length==0) return;
-			self.eventEmitter.emit("map.drawPath",result.points,i);
+		result.routes.forEach(function(route,i) {
+			if (!route || !route.points || route.points.length==0) return;
+			self.eventEmitter.emit("map.drawPath",route.points,i);
 			self.summaryIsReady(true);
-			self.totalTime(self.totalTime()+result.time);
-			self.totalDistance(self.totalDistance()+result.distance);
-			self.instructions.push(result.instructions);			
+			self.totalTime(self.totalTime()+route.time);
+			self.totalDistance(self.totalDistance()+route.distance);
+			self.instructions.push(route.instructions);			
 		});
 	}
 
