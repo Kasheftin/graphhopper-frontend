@@ -70,19 +70,33 @@
 			});
 		}
 
-		GHC.Autocomplete = function(domElementOrId) {
-			var self = this;
-			if (!domElementOrId) return GHC.error("GHC.Autocomplete: container is not set");
-			this.$container = (typeof domElementOrId == "object") ? $(domElementOrId) : $("#"+domElementOrId.toString());
-			if (!this.$container || this.$container.length==0) return GHC.error("GHC.Autocomplete: container is not defined");
-			if (this.$container.data("GHC.Autocomplete")) return this.$container.data("GHC.Autocomplete");
-			this.$container.data("GHC.Autocomplete",this);
 
+		GHC.Autocomplete = function(domElementOrId) {
 			this.items = [];
 			this.selectedItem = null;
 			this.$listContainer = null;
 			this.geocodeService = new GHC.GeocodeService();
+			this.setTarget(domElementOrId);			
+		}
+		GHC.autocomplete = function(options) {
+			return new GHC.Autocomplete(options);
+		}
 
+		GHC.Autocomplete.prototype.setTarget = function(domElementOrId) {
+			var self = this;
+			if (this.$container && this.$container.get(0)==domElementOrId) return this;
+			if (this.$container) this.destroy();
+			if (!domElementOrId) {
+				GHC.error("GHC.Autocomplete: container is not set");
+				return this;
+			}
+			this.$container = (typeof domElementOrId == "object") ? $(domElementOrId) : $("#"+domElementOrId.toString());
+			if (!this.$container || this.$container.length==0) {
+				GHC.error("GHC.Autocomplete: container is not defined");
+				return this;
+			}
+			if (this.$container.data("GHC.Autocomplete")) return this.$container.data("GHC.Autocomplete");
+			this.$container.data("GHC.Autocomplete",this);
 			this.$container.on("input.GHC.Autocomplete propertychange.GHC.Autocomplete paste.GHC.Autocomplete",function() {
 				if (self._requestTimeout) clearTimeout(self._requestTimeout);
 				self._requestTimeout = setTimeout(function() {
@@ -92,7 +106,6 @@
 					});
 				},GHC.autocompleteOptions.requestDelay);
 			});
-
 			this.$container.on("keypress.GHC.Autocomplete",function(e) {
 				var l = self.items.length, i = self.selectedItem;
 				if (e.key=="Up" || e.key=="Down") {
@@ -104,7 +117,6 @@
 					e.stopPropagation();
 					var dir = (e.key=="Up")?-1:1;
 					if (i == null) {
-						console.log("i=null",i,self,self.selectedItem,self.selectItem);
 						self.selectItem(dir>0?0:l-1);
 					}
 					else {
@@ -118,15 +130,11 @@
 					self.closeList();
 				}
 			});
-
 			this.$container.on("blur.GHC.Autocomplete",function() {
 				setTimeout(function() {
 					self.closeList();
 				},GHC.autocompleteOptions.blurDelay);
 			});
-		}
-		GHC.autocomplete = function(options) {
-			return new GHC.Autocomplete(options);
 		}
 
 		GHC.Autocomplete.prototype.rebuildListContainer = function() {
@@ -169,12 +177,12 @@
 
 		GHC.Autocomplete.prototype.reset = function() {
 			this.items = [];
-			this.selectItem = null;
+			this.selectedItem = null;
 			this.closeList();
 		}
 
 		GHC.Autocomplete.prototype.destroy = function() {
-			this.closeList();
+			this.reset();
 			this.$container && this.$container.off(".GHC.Autocomplete");
 			$.removeData(this.$container,"GHC.Autocomplete");
 		}
