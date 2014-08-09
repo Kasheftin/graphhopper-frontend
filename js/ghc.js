@@ -103,7 +103,10 @@
 					e.preventDefault();
 					e.stopPropagation();
 					var dir = (e.key=="Up")?-1:1;
-					if (i == null) self.selectItem(dir>0?0:l-1);
+					if (i == null) {
+						console.log("i=null",i,self,self.selectedItem,self.selectItem);
+						self.selectItem(dir>0?0:l-1);
+					}
 					else {
 						i+=dir;
 						while (i>=l) i-=l;
@@ -132,15 +135,17 @@
 			if (!this.$listContainer) this.$listContainer = $("<div class='ghc-autocomplete-list'></div>").appendTo("body");
 			this.$listContainer.width(this.$container.outerWidth()).css({top:this.$container.offset().top+this.$container.outerHeight(),left:this.$container.offset().left});
 			this.$listContainer.empty();
-			this.items.forEach(function(item,index) {
-				var $link = $("<a class='ghc-autocomplete-item' href='#'></a>");
-				var $spanName = $("<span class='ghc-autocomplete-item-name'></span>").append(item.name).appendTo($link);
-				var $spanCountry = $("<span class='ghc-autocomplete-item-country'></span>").append(item.country).appendTo($link);
-				$link.on("click",function() {
-					self.selectItemAndClose(index);
+			if (this.items.length>1) {
+				this.items.forEach(function(item,index) {
+					var $link = $("<a class='ghc-autocomplete-item' href='#'></a>");
+					var $spanName = $("<span class='ghc-autocomplete-item-name'></span>").append(item.name).appendTo($link);
+					var $spanCountry = $("<span class='ghc-autocomplete-item-country'></span>").append(item.country).appendTo($link);
+					$link.on("click",function() {
+						self.selectItemAndClose(index);
+					});
+					self.$listContainer.append($link);
 				});
-				self.$listContainer.append($link);
-			});
+			}
 		}
 
 		GHC.Autocomplete.prototype.selectItem = function(index) {
@@ -162,40 +167,22 @@
 			this.closeList();
 		}
 
+		GHC.Autocomplete.prototype.reset = function() {
+			this.items = [];
+			this.selectItem = null;
+			this.closeList();
+		}
+
 		GHC.Autocomplete.prototype.destroy = function() {
 			this.closeList();
 			this.$container && this.$container.off(".GHC.Autocomplete");
 			$.removeData(this.$container,"GHC.Autocomplete");
 		}
 
-		GHC.Autocomplete.prototype.getDataAsync = function(callback) {
+		GHC.Autocomplete.prototype.getData = function() {
 			var self = this;
-			if (typeof callback != "function") return;
-			if (this.items && this.items.length>0) return callback(this.items[this.selectedItem==null?0:this.selectedItem]);
-			if (!this.$container) return callback(null);
-			var v = this.$container.val();
-			if (!v || v.length < GHC.autocompleteOptions.minlength) return callback(null);
-			$.ajax({
-				url: GHC.autocompleteOptions.baseUrl,
-				data: {
-					limit: 1,
-					key: GHC.apiKey,
-					q: v,
-					type: "json"
-				},
-				dataType: "json",
-				success: function(result) {
-					if (result.hits && result.hits.length>0) {
-						self.items = result.hits;
-						self.selectedItem = 0;
-						return callback(result.hits[0]);
-					}
-					return callback(null);
-				},
-				error: function() {
-					return callback(null);
-				}
-			});
+			if (this.items && this.items.length>0) return this.items[this.selectedItem==null?0:this.selectedItem];
+			return null;
 		}
 
 		GHC.Autocomplete.prototype.setCoordsData = function(coords) {

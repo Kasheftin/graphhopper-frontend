@@ -2,24 +2,40 @@ define(["jquery","knockout","config","ghc"],function($,ko,config,GHC) {
 
 	var Point = function(options) {
 		if (!options) options = {};
+		this.id = options.id||this.generateUniqueId();
 		this.value = ko.observable(options.value||"");
-		this.afterInitCallback = options.afterInitCallback;
+		options.coords && this.setCoords(options.coords);
+	}
+	Point.prototype.generateUniqueId = function() {
+		var out = "point-";
+		var availLetters = "1234567890qwertyuiopasdfghjklzxcvbnm";
+		for (var i = 0; i < 16; i++)
+			out += availLetters.substr(Math.floor(Math.random()*availLetters.length),1);
+		return out;
 	}
 	Point.prototype.createAutocomplete = function(self,e) {
 		if (this.autocomplete) return;
 		this.autocomplete = new GHC.Autocomplete(e.target);
-		if (typeof this.afterInitCallback == "function") this.afterInitCallback(this);
-	}
-	Point.prototype.getDataAsync = function(callback) {
-		if (this.autocomplete) this.autocomplete.getDataAsync(callback);
-		else if (typeof callback == "function") callback(null);
 	}
 	Point.prototype.destroy = function() {
 		this.autocomplete && this.autocomplete.destroy();
 	}
+	Point.prototype.getDataAsync = function(callback) {
+		if (this.autocomplete) {
+			var data = this.autocomplete.getData();
+			if (data) return callback(data);
+		}
+		GHC.geocodeService().geocode({value:this.value(),limit:1},function(result) {
+			return callback(result[0]);
+		});
+	}
 	Point.prototype.setCoords = function(coords) {
-		this.autocomplete && this.autocomplete.setCoordsData(coords);
+		this.value(coords.lat+", "+coords.lng);
+		this.autocomplete && this.autocomplete.reset();
 	} 
+
+
+
 
 	var Directions = function(o) {
 		var self = this;
@@ -36,13 +52,12 @@ define(["jquery","knockout","config","ghc"],function($,ko,config,GHC) {
 		});
 		this.eventEmitter.on("directions.insertPoint",function(ar) {
 			if (!ar || !ar.lat || !ar.lng || typeof ar.index == "undefined") return;
-			self.addPoint({afterInitCallback: function(point) {
-				point.setCoords(ar);
-				self.apply("insertPoint",ar.index);
-			}},ar.index);
+			self.addPoint({coords:ar},ar.index);
+			self.apply("insertPoint",ar.index);
 		});
 		this.eventEmitter.on("directions.removePoint",function(index) {
-			self.removePointAndApply(index);
+			self.removePoint(index);
+			self.apply("removePoint",index);
 		});
 
 		this.summaryIsReady = ko.observable(false);
@@ -59,8 +74,7 @@ define(["jquery","knockout","config","ghc"],function($,ko,config,GHC) {
 	}
 
 	Directions.prototype.afterRenderPoint = function(domNode,point) {
-		var target = $(domNode).find("input.form-control").focus().get(0);
-		point && point.createAutocomplete(point,{target:target});
+		$(domNode).find("input.form-control").focus();
 	}
 
 	Directions.prototype.beforeRemovePoint = function(domNode,index,point) {
