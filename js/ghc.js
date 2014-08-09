@@ -6,16 +6,18 @@
 		var GHC = {}
 
 		GHC.apiKey = null;
-		GHC.autocompleteOptions = {
-			minlength: 2,
-			limit: 10,
+		GHC.geocodeServiceOptions = {
 			baseUrl: "http://graphhopper.com/api/1/geocode",
-			requestDelay: 200,
-			blurDelay: 200
+			minlength: 2,
+			limit: 10
 		}
 		GHC.directionsServiceOptions = {
 			baseUrl: "http://graphhopper.com/api/1/route",
 			defaultTravelMode: "car"
+		}
+		GHC.autocompleteOptions = {
+			requestDelay: 200,
+			blurDelay: 200
 		}
 
 		GHC.error = function() {
@@ -24,9 +26,52 @@
 			}
 		}
 
+		GHC.GeocodeService = function() { }
+		GHC.geocodeService = function() {
+			return new GHC.GeocodeService();
+		}
+		GHC.GeocodeService.prototype.geocode = function(options,callback) {
+			var self = this;
+			if (typeof callback != "function") return GHC.error("GHC.GeocodeService: geocode callback function is not defined");
+			if (!GHC.apiKey) {
+				GHC.error("GHC.apiKey is not defined");
+				return callback([]);
+			}
+			if (!options.value || options.value.length<GHC.geocodeServiceOptions.minlength) return callback([]);
+			if (/[\d\.]+\s*,\s*[\d.]+/.test(options.value)) {
+				var ar = options.value.split(/,/);
+				var lat = parseFloat(ar[0]);
+				var lng = parseFloat(ar[1]);
+				if (isNaN(lat) || isNaN(lng)) {
+					GHC.error("GHC.Autocomplete: setCoordsData coords are not numbers");
+					return callback([]);
+				}
+				return callback([{
+					name: lat + ", " + lng,
+					point: {lat:lat,lng:lng}
+				}]);
+			}
+			if (this._ajax) this._ajax.abort();
+			this._ajax = $.ajax({
+				url: GHC.geocodeServiceOptions.baseUrl,
+				data: {
+					limit: (options.limit||GHC.geocodeServiceOptions.limit),
+					key: GHC.apiKey,
+					q: options.value,
+					type: "json"
+				},
+				dataType: "json",
+				success: function(result) {
+					callback(result?result.hits||[]:[]);
+				},
+				error: function() {
+					callback([]);
+				}
+			});
+		}
+
 		GHC.Autocomplete = function(domElementOrId) {
 			var self = this;
-			if (!GHC.apiKey) return GHC.error("GHC.apiKey is not defined");
 			if (!domElementOrId) return GHC.error("GHC.Autocomplete: container is not set");
 			this.$container = (typeof domElementOrId == "object") ? $(domElementOrId) : $("#"+domElementOrId.toString());
 			if (!this.$container || this.$container.length==0) return GHC.error("GHC.Autocomplete: container is not defined");
@@ -36,34 +81,14 @@
 			this.items = [];
 			this.selectedItem = null;
 			this.$listContainer = null;
+			this.geocodeService = new GHC.GeocodeService();
 
 			this.$container.on("input.GHC.Autocomplete propertychange.GHC.Autocomplete paste.GHC.Autocomplete",function() {
-				if (self._ajaxTimeout) clearTimeout(self._ajaxTimeout);
-				self._ajaxTimeout = setTimeout(function() {
-					if (self._ajax) self._ajax.abort();
-					var v = self.$container.val();
-					if (v.length < GHC.autocompleteOptions.minlength) return self.resetList();
-					if (/[\d\.]+\s*,\s*[\d.]+/.test(v)) {
-						var ar = v.split(/,/);
-						self.setCoordsData({lat:ar[0].replace(/[^\d\.]/g,""),lng:ar[1].replace(/[^\d\.]/g,"")});
-						return self.closeList(); // TODO: add reverse geocoding
-					}
-					self._ajax = $.ajax({
-						url: GHC.autocompleteOptions.baseUrl,
-						data: {
-							limit: GHC.autocompleteOptions.limit,
-							key: GHC.apiKey,
-							q: v,
-							type: "json"
-						},
-						dataType: "json",
-						success: function(result) {
-							self.items = (result.hits && result.hits.length>0) ? result.hits : [];
-							self.rebuildListContainer();
-						},
-						error: function() {
-							self.resetList();
-						}
+				if (self._requestTimeout) clearTimeout(self._requestTimeout);
+				self._requestTimeout = setTimeout(function() {
+					self.geocodeService.geocode({value:self.$container.val()},function(items) {
+						self.items = items||[];
+						self.rebuildListContainer();
 					});
 				},GHC.autocompleteOptions.requestDelay);
 			});
@@ -96,6 +121,9 @@
 					self.closeList();
 				},GHC.autocompleteOptions.blurDelay);
 			});
+		}
+		GHC.autocomplete = function(options) {
+			return new GHC.Autocomplete(options);
 		}
 
 		GHC.Autocomplete.prototype.rebuildListContainer = function() {
@@ -131,12 +159,6 @@
 
 		GHC.Autocomplete.prototype.selectItemAndClose = function(index) {
 			this.selectItem(index);
-			this.closeList();
-		}
-
-		GHC.Autocomplete.prototype.resetList = function() {
-			this.items = [];
-			this.selectedItem = null;
 			this.closeList();
 		}
 
@@ -234,14 +256,19 @@
 		    return array;
 		}
 
-		GHC.DirectionsService = function() {
+		GHC.DirectionsService = function() {}
+		GHC.directionsService = function() {
+			return new GHC.DirectionsService();
 		}
 
 		// Lat and lng switched in bbox for leaflet
 		GHC.DirectionsService.prototype.route = function(options,callback) {
 			var self = this;
-			if (!GHC.apiKey) return GHC.error("GHC.apiKey is not defined");
 			if (typeof callback != "function") return GHC.error("GHC.DirectionsService: route callback function is not defined");
+			if (!GHC.apiKey) {
+				GHC.error("GHC.apiKey is not defined");
+				return callback(null);
+			}
 			if (!options.points || options.points.length<2) return callback(null);
 			var query = GHC.directionsServiceOptions.baseUrl + "?type=json&key=" + GHC.apiKey + "&vehicle=" + (options.travelMode||GHC.directionsServiceOptions.defaultTravelMode);
 			var validPointCnt = 0;
@@ -252,7 +279,7 @@
 				}
 			});
 			if (validPointCnt<2) return callback(null);
-			$.ajax({
+			this._ajax = $.ajax({
 				url: query,
 				dataType:"json",
 				success: function(result) {
