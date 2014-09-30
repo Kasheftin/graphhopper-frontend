@@ -77,3 +77,7 @@ html,body {
 	text-overflow: ellipsis;
 	overflow: hidden;
 }
+
+.glyphicon.gh-glyphicon {
+	top: 0;
+}

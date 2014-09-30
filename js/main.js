@@ -2,7 +2,7 @@ require.config({
     waitSeconds: 0,
     paths: {
         "jquery"             : "../lib/jquery/dist/jquery",
-        "knockout"           : "../lib/knockout/dist/knockout.debug",
+        "knockout-source"    : "../lib/knockout/dist/knockout.debug",
         "domReady"           : "../lib/requirejs-domready/domReady",
         "EventEmitter"       : "../lib/EventEmitter/EventEmitter",
         "text"               : "../lib/requirejs-text/text",
@@ -16,12 +16,12 @@ require.config({
     }]
 });
 
-require(["domReady!","knockout","EventEmitter","ghc","config","stringTemplateEngine","widgetBinding","knockout.sortable"],function(doc,ko,EventEmitter,GHC,config) {
-    var App = function() {
+require(["domReady!","knockout","EventEmitter","ghc","config","knockout.sortable"],function(doc,ko,EventEmitter,GHC,config) {
+    var RootContext = function() {
         this.eventEmitter = new EventEmitter();
     }
 
     GHC.apiKey = config.graphhopperKey;
 
-    ko.applyBindings(new App);
+    ko.applyBindings(new RootContext);
 });

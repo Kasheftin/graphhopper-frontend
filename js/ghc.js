@@ -7,12 +7,12 @@
 
 		GHC.apiKey = null;
 		GHC.geocodeServiceOptions = {
-			baseUrl: "http://graphhopper.com/api/1/geocode",
+			baseUrl: "http://graphhopper.rag.lt/api/1/geocode",
 			minlength: 2,
 			limit: 10
 		}
 		GHC.directionsServiceOptions = {
-			baseUrl: "http://graphhopper.com/api/1/route",
+			baseUrl: "http://graphhopper.rag.lt/api/1/route",
 			defaultTravelMode: "car"
 		}
 		GHC.autocompleteOptions = {
@@ -106,16 +106,16 @@
 					});
 				},GHC.autocompleteOptions.requestDelay);
 			});
-			this.$container.on("keypress.GHC.Autocomplete",function(e) {
+			this.$container.on("keydown.GHC.Autocomplete",function(e) {
 				var l = self.items.length, i = self.selectedItem;
-				if (e.key=="Up" || e.key=="Down") {
+				if (e.key=="Up" || e.key=="Down" || e.keyCode==38 || e.keyCode==40) {
 					if (!self.$listContainer || l==0) {
 						self.$container.trigger("input.GHC.Autocomplete");
 						return;
 					}
 					e.preventDefault();
 					e.stopPropagation();
-					var dir = (e.key=="Up")?-1:1;
+					var dir = (e.key=="Up"||e.keyCode==38)?-1:1;
 					if (i == null) {
 						self.selectItem(dir>0?0:l-1);
 					}
@@ -126,7 +126,7 @@
 						self.selectItem(i);
 					}
 				}
-				else if (e.key=="Enter" || e.key=="Tab" || e.key=="Esc") {
+				else if (e.key=="Enter" || e.key=="Tab" || e.key=="Esc" || e.keyCode==13 || e.keyCode==9 || e.keyCode==27) {
 					self.closeList();
 				}
 			});

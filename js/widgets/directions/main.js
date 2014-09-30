@@ -89,9 +89,14 @@ define(["jquery","knockout","config","ghc"],function($,ko,config,GHC) {
 	Directions.prototype.formatTime = function(t) {
 		if (!t) return "";
 		t = Math.floor(t/1000);
-		if (t>7200) return Math.ceil(t/3600) + " hours";
-		if (t>120) return Math.ceil(t/60) + " min";
-		return Math.ceil(t/1000) + " sec";		
+		var h = Math.floor(t/3600);
+		var m = Math.floor(t/60)%60;
+		var str = "";
+		if (h>1) str += h + " hours, ";
+		else if (h>0) str += h + "hour, ";
+		if (m>1) str += m + " minutes";
+		else if (m>0) str += m + "minute";
+		return str;
 	}
 
 	Directions.prototype.formatDistance = function(d) {
