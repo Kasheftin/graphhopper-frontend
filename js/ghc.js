@@ -7,12 +7,14 @@
 
 		GHC.apiKey = null;
 		GHC.geocodeServiceOptions = {
-			baseUrl: "http://graphhopper.rag.lt/api/1/geocode",
+//			baseUrl: "http://graphhopper.rag.lt/api/1/geocode",
+			baseUrl: "https://graphhopper.com/api/1/geocode",
 			minlength: 2,
 			limit: 10
 		}
 		GHC.directionsServiceOptions = {
-			baseUrl: "http://graphhopper.rag.lt/api/1/route",
+//			baseUrl: "http://graphhopper.rag.lt/api/1/route",
+			baseUrl: "https://graphhopper.com/api/1/route",
 			defaultTravelMode: "car"
 		}
 		GHC.autocompleteOptions = {
